@@ -28,6 +28,7 @@ import com.sun.spot.io.j2me.radiogram.*;
 import com.sun.spot.resources.Resources;
 import com.sun.spot.resources.transducers.ITriColorLED;
 import com.sun.spot.resources.transducers.ILightSensor;
+import com.sun.spot.resources.transducers.ITemperatureInput;
 import com.sun.spot.util.Utils;
 import javax.microedition.io.*;
 import javax.microedition.midlet.MIDlet;
@@ -51,7 +52,7 @@ public class SensorSampler extends MIDlet {
         RadiogramConnection rCon = null;
         Datagram dg = null;
         String ourAddress = System.getProperty("IEEE_ADDRESS");
-        ILightSensor lightSensor = (ILightSensor)Resources.lookup(ILightSensor.class);
+        ITemperatureInput tempSensor = (ITemperatureInput) Resources.lookup(ITemperatureInput.class);
         ITriColorLED led = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED7");
         
         System.out.println("Starting sensor sampler application on " + ourAddress + " ...");
@@ -73,7 +74,7 @@ public class SensorSampler extends MIDlet {
             try {
                 // Get the current time and sensor reading
                 long now = System.currentTimeMillis();
-                int reading = lightSensor.getValue();
+                double reading = tempSensor.getFahrenheit();
                 
                 // Flash an LED to indicate a sampling event
                 led.setRGB(255, 255, 255);
@@ -84,10 +85,10 @@ public class SensorSampler extends MIDlet {
                 // Package the time and sensor reading into a radio datagram and send it.
                 dg.reset();
                 dg.writeLong(now);
-                dg.writeInt(reading);
+                dg.writeDouble(reading);
                 rCon.send(dg);
 
-                System.out.println("Light value = " + reading);
+                System.out.println("Temperature value = " + reading);
                 
                 // Go to sleep to conserve battery
                 Utils.sleep(SAMPLE_PERIOD - (System.currentTimeMillis() - now));
