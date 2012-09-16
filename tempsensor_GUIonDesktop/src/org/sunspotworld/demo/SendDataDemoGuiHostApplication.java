@@ -116,6 +116,7 @@ public class SendDataDemoGuiHostApplication {
         long addrCheck = 0;
         long count = 0;
         long averageval=0;
+        long sum=0;
         while (true) {
             try {
                 // Read sensor sample received over the radio
@@ -132,7 +133,8 @@ public class SendDataDemoGuiHostApplication {
                 if(addrCheck==0)
                 {
                     addrCheck=dg.getAddressAsLong();
-                    averageval=averageval+val/(count+1);
+                    sum=sum+val;
+                    averageval=sum/(count+1);
                     count=(count+1)%3;
                 }
                 else if(addrCheck==dg.getAddressAsLong())
@@ -142,9 +144,10 @@ public class SendDataDemoGuiHostApplication {
                 else
                 {
                     
-                    averageval=averageval+val/(count+1);
+                    sum+=val;
+                    averageval=sum/(count+1);
                     count=(count+1)%3;
-                    if(count==0)averageval=0;
+                    if(count==0)sum=0;
                 }
                 
                 averagedw.addData(time, averageval);
