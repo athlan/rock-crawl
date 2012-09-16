@@ -27,7 +27,6 @@ package org.sunspotworld.demo;
 import com.sun.spot.io.j2me.radiogram.*;
 import com.sun.spot.resources.Resources;
 import com.sun.spot.resources.transducers.ITriColorLED;
-import com.sun.spot.resources.transducers.ILightSensor;
 import com.sun.spot.resources.transducers.ITemperatureInput;
 import com.sun.spot.util.Utils;
 import javax.microedition.io.*;
@@ -45,8 +44,8 @@ import javax.microedition.midlet.MIDletStateChangeException;
  */
 public class SensorSampler extends MIDlet {
 
-    private static final int HOST_PORT = 67;
-    private static final int SAMPLE_PERIOD = 10 * 1000;  // in milliseconds
+    private static final int HOST_PORT = 70;
+    private static final int SAMPLE_PERIOD = 60 * 1000;  // in milliseconds
     
     protected void startApp() throws MIDletStateChangeException {
         RadiogramConnection rCon = null;
