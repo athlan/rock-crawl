@@ -116,6 +116,7 @@ public class SendDataDemoGuiHostApplication {
         long addrCheck = 0;
         long count = 0;
         long averageval=0;
+        int averagevalint=0;
         long sum=0;
         while (true) {
             try {
@@ -135,6 +136,7 @@ public class SendDataDemoGuiHostApplication {
                     addrCheck=dg.getAddressAsLong();
                     sum=sum+val;
                     averageval=sum/(count+1);
+                    averagevalint=(int)averageval;
                     count=(count+1)%3;
                 }
                 else if(addrCheck==dg.getAddressAsLong())
@@ -146,11 +148,12 @@ public class SendDataDemoGuiHostApplication {
                     
                     sum+=val;
                     averageval=sum/(count+1);
+                    averagevalint=(int)averageval;
                     count=(count+1)%3;
                     if(count==0)sum=0;
                 }
                 
-                averagedw.addData(time, averageval);
+                averagedw.addData(time, averagevalint);
                         
             } catch (Exception e) {
                 System.err.println("Caught " + e + " while reading sensor samples.");
