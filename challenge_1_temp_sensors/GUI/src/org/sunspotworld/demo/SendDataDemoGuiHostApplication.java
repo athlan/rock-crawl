@@ -27,6 +27,8 @@ import com.sun.spot.io.j2me.radiogram.*;
 
 import com.sun.spot.peripheral.ota.OTACommandServer;
 import com.sun.spot.util.IEEEAddress;
+import java.util.HashMap;
+import java.util.Map;
 import javax.microedition.io.*;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -48,6 +50,7 @@ public class SendDataDemoGuiHostApplication {
     private long[] addresses = new long[3];
     //4 windows including one for the average value
     private DataWindow[] plots = new DataWindow[4];
+    private static final int SEND_INTERVAL = 60 * 1000;
 
     //-----------This method is fine. Don't have to modify this. 
     private void setup() {
@@ -65,6 +68,7 @@ public class SendDataDemoGuiHostApplication {
     }
     //-----------------
     //This method tells the app to determine which window to draw the value
+
     private DataWindow findPlot(long addr) {
         for (int i = 0; i < addresses.length; i++) {
             if (addresses[i] == addr) {
@@ -81,22 +85,49 @@ public class SendDataDemoGuiHostApplication {
                     }
                 });
                 return plots[i];
-            }            
+            }
         }
         return plots[0];
+    }
+
+    private class DataPoint {
+
+        private long time;
+        private int data;
+
+        public DataPoint() {
+            time = 0;
+            data = 0;
+        }
+
+        public long getTime() {
+            return time;
+        }
+
+        public int getData() {
+            return data;
+        }
+
+        public void setTime(long time) {
+            this.time = time;
+        }
+
+        public void setData(int data) {
+            this.data = data;
+        }
     }
 
     //This is for receiving data and draw
     private void run() throws Exception {
         RadiogramConnection rCon;
         Radiogram dg;
-        
+
         //create the average window
         plots[3] = new DataWindow("Average Temperature");
         plots[3].setVisible(true);
         DataWindow averagedw = plots[3];
         //-----------------------
-        
+
         //------ This part does not need to modify. dg is the received package.---------//
         try {
             // Open up a server-side broadcast radiogram connection
@@ -112,11 +143,8 @@ public class SendDataDemoGuiHostApplication {
         //----------------------------------------------//
         // Main data collection loop
         //This part is worth attention
-        long addrCheck = 0;
-        long count = 0;
-        long averageval=0;
-        int averagevalint=0;
-        long sum=0;
+        Map<Long, DataPoint> currentValues = new HashMap<Long, DataPoint>();
+
         while (true) {
             try {
                 // Read sensor sample received over the radio
@@ -125,35 +153,40 @@ public class SendDataDemoGuiHostApplication {
                 long time = dg.readLong();      // read time of the reading
                 int val = (int) dg.readDouble();         // read the sensor value
                 dw.addData(time, val);
-                
-                //a very simple way to calculate the average value. 
-                //if the sending address is different than the previous one
-                //then calculate the average value
-                //Some shortages remain
-                if(addrCheck==0)
-                {
-                    addrCheck=dg.getAddressAsLong();
-                    sum=sum+val;
-                    averageval=sum/(count+1);
-                    averagevalint=(int)averageval;
-                    count=(count+1)%3;
+
+                /*
+                 * Map the sensors in a HashMap and store the last data 
+                 * point and the time it was sent
+                 * 
+                 * When a new point comes in average all values that are current
+                 * to a two minute window (this prevents stale data from
+                 * skewing the results)
+                 */
+
+                if (!currentValues.containsKey(dg.getAddressAsLong())) {
+                    currentValues.put(dg.getAddressAsLong(), new DataPoint());
                 }
-                else if(addrCheck==dg.getAddressAsLong())
-                {
-                    continue;
+                DataPoint point = currentValues.get(dg.getAddressAsLong());
+                point.setTime(time);
+                point.setData(val);
+
+                int sum = 0;
+                int validCount = 0;
+
+                for (DataPoint aPoint : currentValues.values()) {
+                    if (aPoint.getTime() >= time - (SEND_INTERVAL * 2)) {
+                        sum += aPoint.getData();
+                        validCount++;
+                    }
                 }
-                else
-                {
-                    
-                    sum+=val;
-                    averageval=sum/(count+1);
-                    averagevalint=(int)averageval;
-                    count=(count+1)%3;
-                    if(count==0)sum=0;
+
+                int average = 0;
+                if (validCount > 0) {
+                    average = sum / validCount;
                 }
-                
-                averagedw.addData(time, averagevalint);
-                        
+
+                averagedw.addData(time, average);
+
             } catch (Exception e) {
                 System.err.println("Caught " + e + " while reading sensor samples.");
                 throw e;
@@ -161,6 +194,7 @@ public class SendDataDemoGuiHostApplication {
         }
     }
 //The main method below does not need to modify
+
     /**
      * Start up the host application.
      *
