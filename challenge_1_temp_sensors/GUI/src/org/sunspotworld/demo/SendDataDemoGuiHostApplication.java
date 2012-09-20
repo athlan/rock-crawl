@@ -67,7 +67,9 @@ public class SendDataDemoGuiHostApplication {
     //This method tells the app to determine which window to draw the value
     private DataWindow findPlot(long addr) {
         for (int i = 0; i < addresses.length; i++) {
-            if (addresses[i] == 0) {
+            if (addresses[i] == addr) {
+                return plots[i];
+            } else if (addresses[i] == 0) {
                 String ieee = IEEEAddress.toDottedHex(addr);
                 status.append("Received packet from SPOT: " + ieee + "\n");
                 addresses[i] = addr;
@@ -79,10 +81,7 @@ public class SendDataDemoGuiHostApplication {
                     }
                 });
                 return plots[i];
-            }
-            if (addresses[i] == addr) {
-                return plots[i];
-            }
+            }            
         }
         return plots[0];
     }
@@ -124,7 +123,7 @@ public class SendDataDemoGuiHostApplication {
                 rCon.receive(dg);
                 DataWindow dw = findPlot(dg.getAddressAsLong());
                 long time = dg.readLong();      // read time of the reading
-                int val = dg.readInt();         // read the sensor value
+                int val = (int) dg.readDouble();         // read the sensor value
                 dw.addData(time, val);
                 
                 //a very simple way to calculate the average value. 
