@@ -5,3 +5,11 @@
 *.war
 *.ear
 /challenge_1_temp_sensors/GUI/build/
+
+*/*/suite/
+*suite/
+*/suite/*
+*.idea/
+*/target/*
+*.iml
+*.ipr

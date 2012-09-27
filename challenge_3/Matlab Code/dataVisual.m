@@ -129,7 +129,6 @@ set(f,'visible','on')
         
         %[status, oldLen, newTrace] = CheckFile('./SpotAccelTempData2.txt', oldLen');
         [status newTrace] = ParseFile(fid);
-        disp(length(newTrace))
         % status == 0 means ok;
         % status == 1 means file open error
         % status == 2 means no update

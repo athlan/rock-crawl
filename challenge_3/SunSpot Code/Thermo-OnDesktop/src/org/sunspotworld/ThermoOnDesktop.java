@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  */
 public class ThermoOnDesktop {
 
-    public static final String BROADCAST_PORT = "37";
+    public static final String BROADCAST_PORT = "48";
     private long SPOTaddr;
     private double accelX, accelY, accelZ;
 //    private double tiltX, tiltY, tiltZ;

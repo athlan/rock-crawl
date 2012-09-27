@@ -35,7 +35,7 @@ public class ThermoBroadcast extends MIDlet {
 	private ITriColorLEDArray leds = (ITriColorLEDArray)Resources.lookup(ITriColorLEDArray.class);
         private ITemperatureInput tempSensor = (ITemperatureInput)Resources.lookup(ITemperatureInput.class);
         
-        public static final String BROADCAST_PORT = "37";
+        public static final String BROADCAST_PORT = "48";
         
         private double accelX, accelY, accelZ;
         private double tiltX, tiltY, tiltZ;
