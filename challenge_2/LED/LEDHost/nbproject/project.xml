@@ -32,13 +32,9 @@
                 <action name="rebuild">
                     <target>clean</target>
                     <target>host-compile</target>
+                    <target>host-compile</target>
                 </action>
             </ide-actions>
-            <export>
-                <type>folder</type>
-                <location>build</location>
-                <build-target>host-compile</build-target>
-            </export>
             <view>
                 <items>
                     <source-folder style="packages">
@@ -51,9 +47,9 @@
                 </items>
                 <context-menu>
                     <ide-action name="build"/>
+                    <ide-action name="rebuild"/>
                     <ide-action name="clean"/>
                     <ide-action name="run"/>
-                    <ide-action name="rebuild"/>
                 </context-menu>
             </view>
             <subprojects/>

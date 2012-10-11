@@ -13,3 +13,7 @@
 */target/*
 *.iml
 *.ipr
+/challenge_2/LED/LEDHost/build/
+/challenge_2/LED/LEDSpot/build/
+/challenge_2/sunspot/target
+/challenge_2/sunspot/plugins

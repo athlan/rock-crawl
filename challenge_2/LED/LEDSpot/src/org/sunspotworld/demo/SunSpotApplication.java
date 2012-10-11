@@ -38,6 +38,7 @@ import javax.microedition.midlet.MIDlet;
 //import javax.microedition.midlet.MIDletStateChangeException;
 
 import com.sun.spot.io.j2me.radiogram.*;
+import com.sun.spot.sensorboard.peripheral.TriColorLED;
 
 import java.io.IOException;
 
@@ -76,14 +77,16 @@ public class SunSpotApplication extends MIDlet {
                 RadiogramConnection dgConnection = null;
                 Datagram dg = null;
                 int signal = 0;
-                ITriColorLED led1 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED1");
-        ITriColorLED led2 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED2");
-        ITriColorLED led3 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED3");
-        ITriColorLED led4 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED4");
-        ITriColorLED led5 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED5");
-        ITriColorLED led6 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED6");
-        ITriColorLED led7 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED7");
-        ITriColorLED led8 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED8");
+                ITriColorLEDArray ledArray = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
+                        
+//                ITriColorLED led1 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED1");
+//                ITriColorLED led2 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED2");
+//                ITriColorLED led3 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED3");
+//                ITriColorLED led4 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED4");
+//                ITriColorLED led5 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED5");
+//                ITriColorLED led6 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED6");
+//                ITriColorLED led7 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED7");
+//                ITriColorLED led8 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED8");
      
                 try {
                     dgConnection = (RadiogramConnection) Connector.open("radiogram://:37");
@@ -100,22 +103,33 @@ public class SunSpotApplication extends MIDlet {
                         dg.reset();
                         dgConnection.receive(dg);
                         signal=dg.readInt();
+                        char color = dg.readChar();
                         System.out.println("Received: " + signal+" from " + dg.getAddress());
-                        led1.setRGB(255,255,255);led2.setRGB(255,255,255);led3.setRGB(255,255,255);led4.setRGB(255,255,255);led5.setRGB(255,255,255);led6.setRGB(255,255,255);led7.setRGB(255,255,255);led8.setRGB(255,255,255);
-                        switch(signal)
-                        {
-                            case 0:led1.setOff();led2.setOff();led3.setOff();led4.setOff();led5.setOff();led6.setOff();led7.setOff();led8.setOff();break;
-                            case 1:led1.setOn();led2.setOff();led3.setOff();led4.setOff();led5.setOff();led6.setOff();led7.setOff();led8.setOff();break;
-                            case 2:led1.setOff();led2.setOn();led3.setOff();led4.setOff();led5.setOff();led6.setOff();led7.setOff();led8.setOff();break;
-                            case 3:led1.setOff();led2.setOff();led3.setOn();led4.setOff();led5.setOff();led6.setOff();led7.setOff();led8.setOff();break;
-                            case 4:led1.setOff();led2.setOff();led3.setOff();led4.setOn();led5.setOff();led6.setOff();led7.setOff();led8.setOff();break;
-                            case 5:led1.setOff();led2.setOff();led3.setOff();led4.setOff();led5.setOn();led6.setOff();led7.setOff();led8.setOff();break;
-                            case 6:led1.setOff();led2.setOff();led3.setOff();led4.setOff();led5.setOff();led6.setOn();led7.setOff();led8.setOff();break;
-                            case 7:led1.setOff();led2.setOff();led3.setOff();led4.setOff();led5.setOff();led6.setOff();led7.setOn();led8.setOff();break;
-                            case 8:led1.setOff();led2.setOff();led3.setOff();led4.setOff();led5.setOff();led6.setOff();led7.setOff();led8.setOn();break;
-                            default: led1.setOff();led2.setOff();led3.setOff();led4.setOff();led5.setOff();led6.setOff();led7.setOff();led8.setOff();break;
-                                                
+                        
+                        ITriColorLED led = ledArray.getLED(signal-1);
+                        
+                        switchLED(led);
+                        
+                        switch (color) {
+                            case 'b': led.setRGB(0, 0, 255); break;
+                            case 'g': led.setRGB(0, 255, 0); break;
+                            case 'r': led.setRGB(255, 0, 0); break;
+                            case 'w': led.setRGB(255, 255, 255); break;
+                            default:
                         }
+                        int status = 0;
+                        
+                        for(int i = 0; i < 8; i++) {
+                            if (ledArray.getLED(i).isOn()) {
+                                status |= (1 << (7-i));
+                            }
+                        }
+                        
+                        dg.reset();
+                        dg.writeInt(status);
+                        dgConnection.send(dg);
+                        
+                        
                         
                         
                     } catch (IOException e) {
@@ -125,6 +139,13 @@ public class SunSpotApplication extends MIDlet {
             }
     
     
+    private void switchLED(ITriColorLED led) {
+        if (led.isOn()) {
+            led.setOff();
+        } else {
+            led.setOn();
+        }
+    }
     
     
     

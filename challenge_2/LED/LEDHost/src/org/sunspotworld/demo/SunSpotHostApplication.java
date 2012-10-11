@@ -28,6 +28,10 @@ import com.sun.spot.io.j2me.radiogram.RadiogramConnection;
 import com.sun.spot.peripheral.radio.RadioFactory;
 import com.sun.spot.util.IEEEAddress;
 import com.sun.spot.util.Utils;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import javax.microedition.io.*;
 
@@ -57,23 +61,51 @@ public class SunSpotHostApplication {
              System.err.println("setUp caught " + e.getMessage());
              throw e;
         }
-
+                
         
                 while(true){
+                    BufferedReader reader = new BufferedReader(new FileReader("/Library/Tomcat/webapps/remote/commands.txt"));
+                    String num = reader.readLine();
+                    String color = reader.readLine();
+                    reader.close();
+                    new BufferedWriter(new FileWriter("/Library/Tomcat/webapps/remote/commands.txt")).close();
+
                     try {
+                        
+                        System.out.println("Read: " + num);
+                        int number = Integer.parseInt(num);
+                        
+                        
+                        
+
+
                         // We send the message (UTF encoded)
-                        if(ctl==9)ctl=1;
-                        dg.reset();
-                        dg.writeInt(ctl);
-                        rCon.send(dg);
-                        System.out.println("Broadcast is going through.PH ctl="+ctl);
-                        ctl=ctl+1;
+//                        if(ctl==9)ctl=1;
+                        if (number > 0 && number < 9){
+                            dg.reset();
+                            dg.writeInt(number);
+                            if(color != null && color.length() > 0) {
+                                char c = color.toLowerCase().charAt(0);
+                                dg.writeChar(c);                                 
+                              
+                            } else {                            
+                               dg.writeChar('w');
+                            }
+                            rCon.send(dg);
+                        }
+                        
+                       
                     } catch (IOException ex) {
                         ex.printStackTrace();
+                    } catch (NumberFormatException e) {
+                        
                     }
                     Utils.sleep(500);
+                    dg.reset();
+                    rCon.receive(dg);
+                    System.out.println(dg.readInt());
                 }
-    }
+    }    
 
     
     
