@@ -44,6 +44,7 @@ import java.io.IOException;
 
 import javax.microedition.io.Connector;
 import javax.microedition.io.Datagram;
+import javax.microedition.io.DatagramConnection;
 //import javax.microedition.io.DatagramConnection;
 import javax.microedition.midlet.MIDletStateChangeException;
 
@@ -57,7 +58,8 @@ import javax.microedition.midlet.MIDletStateChangeException;
  */
 public class SunSpotApplication extends MIDlet {
 
-    private ITriColorLEDArray leds = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
+    
+    private ITriColorLEDArray ledArray = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
     
     protected void startApp() throws MIDletStateChangeException {
         System.out.println("Hello, world");
@@ -67,26 +69,62 @@ public class SunSpotApplication extends MIDlet {
         System.out.println("Our radio address = " + IEEEAddress.toDottedHex(ourAddr));
         
         startReceiver();
+        startSenderThread();
 //        ISwitch sw1 = (ISwitch) Resources.lookup(ISwitch.class, "SW1");
        
-        notifyDestroyed();                      // cause the MIDlet to exit
+        //notifyDestroyed();                      // cause the MIDlet to exit
+    }
+    
+     synchronized public void startSenderThread() {
+        new Thread() {
+            public void run() {
+                // We create a DatagramConnection
+                RadiogramConnection dgConnection = null;
+                Datagram dg = null;
+                try {
+                    // The Connection is a broadcast so we specify it in the creation string
+                    dgConnection = (RadiogramConnection) Connector.open("radiogram://broadcast:38");
+                    // Then, we ask for a datagram with the maximum size allowed
+                    dg = dgConnection.newDatagram(dgConnection.getMaximumLength());
+                } catch (IOException ex) {
+                    System.out.println("Could not open radiogram broadcast connection");
+                    ex.printStackTrace();
+                    return;
+                }
+                
+                while(true){
+                    try {
+                         int status = 0;
+                        
+                        for(int i = 0; i < 8; i++) {
+                            if (ledArray.getLED(i).isOn()) {
+                                status |= (1 << (7-i));
+                            }
+                        }
+                        
+                        dg.reset();
+                        dg.writeInt(status);
+                        dgConnection.send(dg);
+                                               
+                        System.out.println("Broadcast is going through");
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    Utils.sleep(500);
+                }
+            }
+        }.start();
     }
     
       public void startReceiver() {
-        
+          new Thread() {
+              public void run() {
+          
                 RadiogramConnection dgConnection = null;
                 Datagram dg = null;
                 int signal = 0;
-                ITriColorLEDArray ledArray = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
+                
                         
-//                ITriColorLED led1 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED1");
-//                ITriColorLED led2 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED2");
-//                ITriColorLED led3 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED3");
-//                ITriColorLED led4 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED4");
-//                ITriColorLED led5 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED5");
-//                ITriColorLED led6 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED6");
-//                ITriColorLED led7 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED7");
-//                ITriColorLED led8 = (ITriColorLED)Resources.lookup(ITriColorLED.class, "LED8");
      
                 try {
                     dgConnection = (RadiogramConnection) Connector.open("radiogram://:37");
@@ -117,18 +155,7 @@ public class SunSpotApplication extends MIDlet {
                             case 'w': led.setRGB(255, 255, 255); break;
                             default:
                         }
-                        int status = 0;
-                        
-                        for(int i = 0; i < 8; i++) {
-                            if (ledArray.getLED(i).isOn()) {
-                                status |= (1 << (7-i));
-                            }
-                        }
-                        
-                        dg.reset();
-                        dg.writeInt(status);
-                        dgConnection.send(dg);
-                        
+                       
                         
                         
                         
@@ -136,7 +163,9 @@ public class SunSpotApplication extends MIDlet {
                        System.out.println("Nothing received");
                     }
                 }
-            }
+              }
+          }.start();
+      }
     
     
     private void switchLED(ITriColorLED led) {
@@ -168,6 +197,6 @@ public class SunSpotApplication extends MIDlet {
      *    at this time.
      */
     protected void destroyApp(boolean unconditional) throws MIDletStateChangeException {
-        leds.setOff();
+        ledArray.setOff();
     }
 }

@@ -11,28 +11,32 @@ class LedController {
             put(5, "BLUE")
             put(6, "BLUE")
             put(7, "BLUE")
-            put(8, "WHITE")
+            put(8, "BLUE")
         }
     };
     static int lightStatus = 1
 
     def index() {
+
+        updateLightStatus()
+
         render(view:'index',
                 model:[
-                        status0: (lightStatus & 0x01) > 0 ? 'ON' : 'OFF',
-                        status1: (lightStatus & 0x02) > 0 ? 'ON' : 'OFF',
-                        status2: (lightStatus & 0x04) > 0 ? 'ON' : 'OFF',
-                        status3: (lightStatus & 0x08) > 0 ? 'ON' : 'OFF',
-                        status4: (lightStatus & 0x10) > 0 ? 'ON' : 'OFF',
-                        status5: (lightStatus & 0x20) > 0 ? 'ON' : 'OFF',
-                        status6: (lightStatus & 0x40) > 0 ? 'ON' : 'OFF',
-                        status7: (lightStatus & 0x80) > 0 ? 'ON' : 'OFF'
+                        status0: (lightStatus & 0x80) > 0 ? 'ON' : 'OFF',
+                        status1: (lightStatus & 0x40) > 0 ? 'ON' : 'OFF',
+                        status2: (lightStatus & 0x20) > 0 ? 'ON' : 'OFF',
+                        status3: (lightStatus & 0x10) > 0 ? 'ON' : 'OFF',
+                        status4: (lightStatus & 0x08) > 0 ? 'ON' : 'OFF',
+                        status5: (lightStatus & 0x04) > 0 ? 'ON' : 'OFF',
+                        status6: (lightStatus & 0x02) > 0 ? 'ON' : 'OFF',
+                        status7: (lightStatus & 0x01) > 0 ? 'ON' : 'OFF'
                 ])
     }
 
 
     def switchLight(int position) {
-        def mask = (1 << position)
+        def mask = (1 << (8 - position))
+        updateLightStatus()
         def currentStatus = lightStatus & mask
 
         def file = new File("/Library/Tomcat/webapps/remote/commands.txt");
@@ -44,14 +48,27 @@ class LedController {
 
         if (currentStatus > 0) {
             lightStatus &= ~mask;
-            render position
+            render 'OFF'
         } else {
             lightStatus |= mask;
             render 'ON'
         }
-
-
     }
+
+    private void updateLightStatus() {
+        def file = new File("/Library/Tomcat/webapps/remote/status.txt")
+        def reader = new BufferedReader(new FileReader(file))
+
+        try {
+            lightStatus = Integer.parseInt(reader.readLine());
+        } catch(NumberFormatException e) {
+            lightStatus = 0;
+        }
+    }
+
+	def getStatus() {
+		render lightStatus
+	}
 
     def getLightStatus(int position) {
         render (lightStatus & (1 << position)) > 0

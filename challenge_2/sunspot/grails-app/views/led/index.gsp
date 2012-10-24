@@ -98,23 +98,23 @@
         </tr>
         <tr>
             <td width=12.5%>
-                <g:remoteLink action="switchLight" params="[position:0]"
+                <g:remoteLink action="switchLight" params="[position:1]"
                                           update="led0">Switch
                 </g:remoteLink>
             </td>
-            <td width=12.5%><g:remoteLink action="switchLight" params="[position:1]"
-                                          update="led1">Switch</g:remoteLink></td>
             <td width=12.5%><g:remoteLink action="switchLight" params="[position:2]"
-                                          update="led2">Switch</g:remoteLink></td>
+                                          update="led1">Switch</g:remoteLink></td>
             <td width=12.5%><g:remoteLink action="switchLight" params="[position:3]"
-                                          update="led3">Switch</g:remoteLink></td>
+                                          update="led2">Switch</g:remoteLink></td>
             <td width=12.5%><g:remoteLink action="switchLight" params="[position:4]"
-                                          update="led4">Switch</g:remoteLink></td>
+                                          update="led3">Switch</g:remoteLink></td>
             <td width=12.5%><g:remoteLink action="switchLight" params="[position:5]"
-                                          update="led5">Switch</g:remoteLink></td>
+                                          update="led4">Switch</g:remoteLink></td>
             <td width=12.5%><g:remoteLink action="switchLight" params="[position:6]"
-                                          update="led6">Switch</g:remoteLink></td>
+                                          update="led5">Switch</g:remoteLink></td>
             <td width=12.5%><g:remoteLink action="switchLight" params="[position:7]"
+                                          update="led6">Switch</g:remoteLink></td>
+            <td width=12.5%><g:remoteLink action="switchLight" params="[position:8]"
                                           update="led7">Switch</g:remoteLink></td>
         </tr>
         <tr>
