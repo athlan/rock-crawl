@@ -255,7 +255,7 @@ public class SunSpotApplication extends MIDlet {
                             
                             
                             
-                            CurrentDistance=0;//???CurrentRssi;
+                            CurrentDistance= 0.078*(CurrentRssi)*(CurrentRssi)+ 0.025*(CurrentRssi)-4.792;
                             System.out.println("Current beacon = " + CurrentBeaconHex + " Last rssi = " + CurrentRssi + "CurrentDistance" + CurrentDistance);
                             nothing = 0;
                             recvLED.setOff();

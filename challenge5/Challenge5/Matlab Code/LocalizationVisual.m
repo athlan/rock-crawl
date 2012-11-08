@@ -10,25 +10,25 @@ dataFields = {'ID', 'Distance'};
 
 
 Beacon(1).x=1;
-Beacon(1).y=20;
-Beacon(2).x=21;
-Beacon(2).y=20;
+Beacon(1).y=40;
+Beacon(2).x=41;
+Beacon(2).y=40;
 Beacon(3).x=1;
 Beacon(3).y=0;
-Beacon(4).x=21;
+Beacon(4).x=41;
 Beacon(4).y=0;
 
-plot(0,20,'ro');
+plot(Beacon(1).x-1,Beacon(1).y,'ro');
 hold on;
-plot(20,20,'ro');
+plot(Beacon(2).x-1,Beacon(2).y,'ro');
 hold on;
-plot(0,0,'ro');
+plot(Beacon(3).x-1,Beacon(3).y,'ro');
 hold on;
-plot(20,0,'ro');
+plot(Beacon(4).x-1,Beacon(4).y,'ro');
 hold on;
 Spot.point=plot(15,15,'g*');
 set(Spot.point,'visible','off');
-axis([-10 30 -10 30]);
+axis([-10 50 -10 50]);
 
 
 for ii=1:4
@@ -137,7 +137,10 @@ fid = fopen('./SpotDistance.txt');
             B(nn,:)=[Beacon(nn).x,Beacon(nn).y,Beacon(nn).Distance];
             
         end
-        [Spot.x Spot.y]=trilateration(B,4);
+        if(length(ids)==4)
+            [Spot.x Spot.y]=trilateration(B,4);
+        end
+
         disp(Spot.x);
         disp(Spot.y);
 %         delete(Spot.point);
