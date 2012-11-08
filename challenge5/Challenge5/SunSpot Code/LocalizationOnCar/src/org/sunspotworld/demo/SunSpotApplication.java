@@ -34,6 +34,7 @@ import com.sun.spot.resources.transducers.LEDColor;
 import com.sun.spot.resources.transducers.ITriColorLEDArray;
 import com.sun.spot.io.j2me.radiogram.Radiogram;
 import com.sun.spot.io.j2me.radiogram.RadiogramConnection;
+import com.sun.spot.util.IEEEAddress;
 
 import java.io.IOException;
 import javax.microedition.io.Connector;
@@ -75,8 +76,8 @@ public class SunSpotApplication extends MIDlet {
 	private int CurrentRssi=0;
 	private double LastDistance=0;
     private double CurrentDistance=0;
-    private long CurrentBeacon=0;
-    private String CurrentBeaconHex="0";
+    private String CurrentBeacon="0";
+    
 
 	
 
@@ -139,8 +140,6 @@ public class SunSpotApplication extends MIDlet {
         CurrentRssi=0;
         LastDistance=0;
         CurrentDistance=0;
-        CurrentBeacon=0;
-        CurrentBeaconHex="0";
     }
     
 
@@ -181,7 +180,7 @@ public class SunSpotApplication extends MIDlet {
                     sendLED.setOn();
                     long nextTime = System.currentTimeMillis() + PACKET_INTERVAL;
                     xdg.reset();
-					xdg.writeLong(CurrentBeacon);
+                    xdg.writeLong(IEEEAddress.toLong(CurrentBeacon));
                     xdg.writeDouble(CurrentDistance);
                     txConn.send(xdg);
                     sendLED.setOff();
@@ -228,25 +227,24 @@ public class SunSpotApplication extends MIDlet {
                             recvLED.setColor(getGreen());
                             recvLED.setOn();
                             
-                            CurrentBeacon = rdg.readLong();
+                            CurrentBeacon = rdg.getAddress();
                             CurrentRssi =rdg.getRssi();
-                            CurrentBeaconHex=IEEEAddress.toDottedHex(CurrentBeacon);
-                            if(CurrentBeaconHex.equals("0014.4F01.0000.4120"))
+                            if(CurrentBeacon.equals("0014.4F01.0000.4120"))
                             {
                                 Beacon1LED.setColor(getGreen());
                                 Beacon1LED.setOn();
                             }
-                            else if(CurrentBeaconHex.equals("0014.4F01.0000.43CC"))
+                            else if(CurrentBeacon.equals("0014.4F01.0000.43CC"))
                             {
                                 Beacon2LED.setColor(getGreen());
                                 Beacon2LED.setOn();
                             }
-                            else if(CurrentBeaconHex.equals("0014.4F01.0000.45D0"))
+                            else if(CurrentBeacon.equals("0014.4F01.0000.45D0"))
                             {
                                 Beacon3LED.setColor(getGreen());
                                 Beacon3LED.setOn();
                             }
-                            else if(CurrentBeaconHex.equals("0014.4F01.0000.4396"))
+                            else if(CurrentBeacon.equals("0014.4F01.0000.4396"))
                             {
                                 Beacon4LED.setColor(getGreen());
                                 Beacon4LED.setOn();
@@ -256,7 +254,7 @@ public class SunSpotApplication extends MIDlet {
                             
                             
                             CurrentDistance= 0.078*(CurrentRssi)*(CurrentRssi)+ 0.025*(CurrentRssi)-4.792;
-                            System.out.println("Current beacon = " + CurrentBeaconHex + " Last rssi = " + CurrentRssi + "CurrentDistance" + CurrentDistance);
+                            System.out.println(CurrentBeacon + ", Last rssi = " + CurrentRssi + "CurrentDistance" + CurrentDistance);
                             nothing = 0;
                             recvLED.setOff();
                         }

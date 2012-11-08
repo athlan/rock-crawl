@@ -110,7 +110,7 @@ public class SunSpotApplication extends MIDlet {
 
         while (true) {
             try {
-                txConn = (RadiogramConnection)Connector.open("radiogram://0014.4F01.0000.45B3:" + BEACONBROADCAST_PORT);
+                txConn = (RadiogramConnection)Connector.open("radiogram://0014.4F01.0000.45B3:"/*"radiogram://0000.0000.0000.1007:"*/ + BEACONBROADCAST_PORT);
                 txConn.setMaxBroadcastHops(1);      // don't want packets being rebroadcasted
                 Datagram xdg = txConn.newDatagram(txConn.getMaximumLength());
                 while (true) {
@@ -118,7 +118,6 @@ public class SunSpotApplication extends MIDlet {
                     
                     xdg.reset();
                     xdg.writeByte(RADIO_TEST_PACKET);
-					xdg.writeLong(ourAddress);
                     txConn.send(xdg);
                     long delay = (nextTime - System.currentTimeMillis()) - 2;
                     if (delay > 0) {
