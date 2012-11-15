@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 public class SunSpotHostApplication {
 
-    public static final String BROADCAST_PORT = "112";
+    public static final String BROADCAST_PORT = "48";
 
     public void run() {
         long ourAddr = RadioFactory.getRadioPolicyManager().getIEEEAddress();
@@ -72,7 +72,7 @@ public class SunSpotHostApplication {
 
             } catch (IOException e) {
                 System.out.println("No datagram received");
-            }
+            } 
         }
     }
 

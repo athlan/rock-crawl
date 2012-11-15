@@ -9,13 +9,13 @@ f = figure('units','normalized','Position',[.2 .2 .6 .6], 'Name', 'Localization'
 dataFields = {'ID', 'Distance'};
 
 
-Beacon(1).x=1;
-Beacon(1).y=40;
-Beacon(2).x=41;
-Beacon(2).y=40;
-Beacon(3).x=1;
+Beacon(1).x=0;
+Beacon(1).y=50;
+Beacon(2).x=50;
+Beacon(2).y=50;
+Beacon(3).x=0;
 Beacon(3).y=0;
-Beacon(4).x=41;
+Beacon(4).x=50;
 Beacon(4).y=0;
 
 plot(Beacon(1).x-1,Beacon(1).y,'ro');
@@ -27,8 +27,9 @@ hold on;
 plot(Beacon(4).x-1,Beacon(4).y,'ro');
 hold on;
 Spot.point=plot(15,15,'g*');
+ Spot.Label=text(15,15,strcat(num2str(15),',',num2str(15)));
 set(Spot.point,'visible','off');
-axis([-10 50 -10 50]);
+axis([-10 60 -10 60]);
 
 
 for ii=1:4
@@ -46,7 +47,7 @@ end
 
 set(f,'visible','on');
     
-updateTimer = timer('period',.9,...
+updateTimer = timer('period',.5,...
     'ExecutionMode','fixedRate',...
     'BusyMode','drop',...
     'TimerFcn',@updateData);
@@ -143,10 +144,11 @@ fid = fopen('./SpotDistance.txt');
 
         disp(Spot.x);
         disp(Spot.y);
-%         delete(Spot.point);
-        %Spot.point=plot(Spot.x,Spot.y,'g*');
-        plot(Spot.x,Spot.y,'g*');
-        hold on;
+         delete(Spot.point);
+         delete(Spot.Label);
+        Spot.point=plot(Spot.x,Spot.y,'g*');
+        %plot(Spot.x,Spot.y,'g*');
+        %hold on;
         Spot.Label=text(Spot.x+1,Spot.y,strcat(num2str(Spot.x),',',num2str(Spot.y)));
         
     end

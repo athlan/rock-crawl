@@ -71,15 +71,15 @@ public class ThermoOnDesktop {
                 dgConnection.receive(dg);
                 SPOTaddr = dg.readLong();
                 accelX = dg.readDouble();
-                accelY = dg.readDouble();
-                accelZ = dg.readDouble();
-//                        tiltX = dg.readDouble();
-//                        tiltY = dg.readDouble();
-//                        tiltZ = dg.readDouble();
-                tempC = dg.readDouble();
-                tempF = dg.readDouble();
-//                    System.out.println(IEEEAddress.toDottedHex(SPOTaddr)
-//                            + "," + accelX + "," + accelY + "," + accelZ + "," + tempC + "," + tempF + ",");
+//                accelY = dg.readDouble();
+//                accelZ = dg.readDouble();
+////                        tiltX = dg.readDouble();
+////                        tiltY = dg.readDouble();
+////                        tiltZ = dg.readDouble();
+//                tempC = dg.readDouble();
+//                tempF = dg.readDouble();
+                    System.out.println(IEEEAddress.toDottedHex(SPOTaddr)
+                            + "," + accelX + "," + accelY + "," + accelZ + "," + tempC + "," + tempF + ",");
 
                 try {
                     File file = new File("../../Matlab Code/SPOTAccelTempData2.txt");
