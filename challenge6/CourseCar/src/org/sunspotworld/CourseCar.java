@@ -32,7 +32,7 @@ public class CourseCar extends MIDlet {
 
     private static final int SERVO_CENTER_VALUE = 1500;
     private static final int FB_SERVO_HIGH = 200;
-    private static final int LR_SERVO_HIGH = 200;
+    private static final int LR_SERVO_HIGH = 500;
     private EDemoBoard eDemo = EDemoBoard.getInstance();
     private IAnalogInput rightSensor = eDemo.getAnalogInputs()[EDemoBoard.A0];
     private IAnalogInput leftSensor = eDemo.getAnalogInputs()[EDemoBoard.A1];
@@ -40,7 +40,8 @@ public class CourseCar extends MIDlet {
     private int baselineRight = 0;
     private int baselineLeft = 0;
     private ISwitch sw1 = (ISwitch) Resources.lookup(ISwitch.class, "SW1");
-    private Servo frontBackServo = new Servo(eDemo.getOutputPins()[EDemoBoard.H1]);
+    private ISwitch sw2 = (ISwitch) Resources.lookup(ISwitch.class, "SW2");
+    private Servo frontBackServo = new Servo(eDemo.getOutputPins()[EDemoBoard.H0]);
     private Servo leftRightServo = new Servo(eDemo.getOutputPins()[EDemoBoard.H1]);
     private ITriColorLEDArray leds = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
 
@@ -51,40 +52,37 @@ public class CourseCar extends MIDlet {
         long ourAddr = RadioFactory.getRadioPolicyManager().getIEEEAddress();
         System.out.println("Our radio address = " + IEEEAddress.toDottedHex(ourAddr));
 
-        ISwitch sw1 = (ISwitch) Resources.lookup(ISwitch.class, "SW1");
         ITriColorLED led = leds.getLED(0);
-        led.setRGB(100, 0, 0);                    // set color to moderate red
-        while (sw1.isOpen()) {                  // done when switch is pressed
-            led.setOn();                        // Blink LED
-            Utils.sleep(250);                   // wait 1/4 seconds
-            led.setOff();
-            Utils.sleep(1000);                  // wait 1 second
-        }
-        stop();
-        recordBaseline();
-        while (sw1.isOpen()) { //Start when you press the switch
-            if (checkCorner()) {
-                turnCorner();
-            } else {
-                if (getLeftValue() < baselineLeft - 5) {
-                    turnRight();
-                } else if (getRightValue() < baselineRight - 5) {
-                    turnLeft();
+        while (true) {
+            led.setRGB(100, 0, 0);                    // set color to moderate red
+            while (sw2.isOpen()) {
+                blinkLed(led);
+                stop();// wait 1 second
+            }
+            recordBaseline();
+            led.setRGB(0, 0, 100);
+            led.setOn();
+            while (sw1.isOpen()) { //Start when you press the switch
+
+                if (checkCorner()) {
+                    turnCorner();
                 } else {
-                    goStraight();
+                    System.out.println(baselineLeft + " " + getLeftValue());
+                    if (getLeftValue() < baselineLeft - 10) {
+                        turnRight();
+                    } else if (getRightValue() < baselineRight - 10) {
+                        turnLeft();
+                    } else {
+                        goStraight();
+                    }
+
                 }
-                
                 goForward();
-            }
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                blinkLed(led);
             }
         }
-        notifyDestroyed();                      // cause the MIDlet to exit        
     }
-    
+
     protected void pauseApp() {
         // This is not currently called by the Squawk VM
     }
@@ -92,9 +90,8 @@ public class CourseCar extends MIDlet {
     private boolean checkCorner() {
         return false;
     }
-        
+
     private void turnCorner() {
-        
     }
 
     private void turnLeft() {
@@ -110,12 +107,9 @@ public class CourseCar extends MIDlet {
     }
 
     private void goForward() {
+        System.out.println("Forward");
         frontBackServo.setValue(SERVO_CENTER_VALUE - FB_SERVO_HIGH);
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
+
     }
 
     private void stop() {
@@ -128,21 +122,32 @@ public class CourseCar extends MIDlet {
     }
 
     private int getLeftValue() {
-        try {
-            return (int) (leftSensor.getVoltage() / .0098);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+
+        double value = 0;
+        for (int ii = 0; ii < 5; ii++) {
+            try {
+                value +=(leftSensor.getVoltage() / .009766 * 2.4);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return -1;
+            }
         }
-        return -1;
+
+        return (int) (value/5);
     }
 
     private int getRightValue() {
-        try {
-            return (int) (rightSensor.getVoltage() / .0098);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        double value = 0;
+        for (int ii = 0; ii < 5; ii++) {
+            try {
+                value +=(rightSensor.getVoltage() / .009766 * 2.4);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return -1;
+            }
         }
-        return -1;
+
+        return (int) (value/5);
     }
 
     private int getFrontValue() {
@@ -169,5 +174,12 @@ public class CourseCar extends MIDlet {
      * resources.
      */
     protected void destroyApp(boolean unconditional) throws MIDletStateChangeException {
+    }
+
+    private void blinkLed(ITriColorLED led) {
+        led.setOn();
+        Utils.sleep(250);
+        led.setOff();
+        Utils.sleep(250);
     }
 }
