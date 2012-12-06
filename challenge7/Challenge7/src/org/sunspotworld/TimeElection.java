@@ -41,7 +41,8 @@ public class TimeElection extends MIDlet {
     private static final String HEARTBEAT_PORT = "41";
     private int power = 32;                             // Start with max transmit power
     private long myAddr; // own MAC addr (ID)
-    private ITriColorLEDArray leds = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
+    private ISwitch sw1 = (ISwitch)Resources.lookup(ISwitch.class, "SW1");
+    private ITriColorLEDArray leds = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);    
     private ITriColorLED statusLED = leds.getLED(0);
     private LEDColor red = new LEDColor(50, 0, 0);
     private LEDColor green = new LEDColor(0, 50, 0);
@@ -61,7 +62,7 @@ public class TimeElection extends MIDlet {
         static final int DATA = 4;
     }
 
-    protected void startApp() throws MIDletStateChangeException {
+    protected void startApp() throws MIDletStateChangeException {        
         System.out.println("Hello, world");
         BootloaderListenerService.getInstance().start();   // monitor the USB (if connected) and recognize commands from host
 
@@ -190,7 +191,7 @@ public class TimeElection extends MIDlet {
         IRadioPolicyManager rpm = Spot.getInstance().getRadioPolicyManager();
         rpm.setChannelNumber(CHANNEL_NUMBER);
         rpm.setPanId(PAN_ID);
-        rpm.setOutputPower(power - 32);
+      //  rpm.setOutputPower(power - 32);
     }
     
     /**
