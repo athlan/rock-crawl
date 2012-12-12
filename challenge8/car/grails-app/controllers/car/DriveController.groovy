@@ -25,4 +25,15 @@ class DriveController {
      new File(fileName).write("Left\n")
      render 'Left'
     }
+
+    def goStop() {
+     new File(fileName).write("Stop\n")
+     render 'Stopped'     
+    }
+         
+    def changeSpeed(String speed) {
+     new File("/tmp/speed").write("${speed}\n")
+     render speed
+//     render '$speed'
+    }
 }
