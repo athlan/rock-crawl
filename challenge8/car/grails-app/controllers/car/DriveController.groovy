@@ -3,6 +3,7 @@ package car
 class DriveController {
 
     private static String fileName="/tmp/command"
+    private static int direction=0
 
     def index() { }
 
@@ -17,13 +18,35 @@ class DriveController {
     }
 
     def goRight() {
-     new File(fileName).write("Right\n")
-     render 'Right'
+     if (++direction > 1) direction = 1;
+     switch (direction) {
+     	case 1:
+		new File(fileName).write("Right\n")
+     		render 'Right'
+		break;
+	case 0:
+		new File(fileName).write("Center\n")
+                render 'Center'
+                break;
+	default: 
+		render "Default"
+     }
     }
 
     def goLeft() {
-     new File(fileName).write("Left\n")
-     render 'Left'
+     if(--direction < -1) direction = -1;
+     switch (direction) {
+	case -1:
+     		new File(fileName).write("Left\n")
+     		render 'Left'
+		break;
+	case 0: 
+		new File(fileName).write("Center\n")
+                render 'Center'
+                break; 
+	default:
+		render "Default"
+     }
     }
 
     def goStop() {

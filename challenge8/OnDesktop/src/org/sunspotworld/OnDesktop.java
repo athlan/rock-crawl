@@ -23,6 +23,23 @@ import javax.microedition.io.*;
  */
 public class OnDesktop {
 
+    private void clearFiles() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(speedFileName));
+            writer.write("\n"); 
+            writer.close();
+        } catch (IOException ex) {
+            Logger.getLogger(OnDesktop.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(directionFileName));
+            writer.write("\n"); 
+            writer.close();
+        } catch (IOException ex) {
+            Logger.getLogger(OnDesktop.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     private static class Speeds {
 
         private static final int SLOW = 1;
@@ -90,6 +107,8 @@ public class OnDesktop {
         direction = Directions.STOP;
         appRun = true;
         sendSpeed = sendDirection = true;
+        clearFiles(); 
+        
         initialize();
         openRadios();
         startRadioThreads();
