@@ -34,7 +34,7 @@ import javax.microedition.midlet.MIDletStateChangeException;
  * The manifest specifies this class as MIDlet-1, which means it will be
  * selected for execution.
  */
-public class OnSpot extends MIDlet {
+public class Repeater extends MIDlet {
 
     private static final int SERVO_CENTER_VALUE = 1500;
     private static final int LR_SERVO_HIGH = 500;
@@ -62,8 +62,7 @@ public class OnSpot extends MIDlet {
     private static final String SPEED_PORT = "57";
     private static final String RESPONSE_PORT = "42";
     private RadiogramConnection directionRadio;
-    private RadiogramConnection speedRadio;
-    private RadiogramConnection responseRadio;
+   
     private ITriColorLEDArray leds = (ITriColorLEDArray) Resources.lookup(ITriColorLEDArray.class);
     private ISwitch sw1 = (ISwitch) Resources.lookup(ISwitch.class, "SW1");
     private EDemoBoard eDemo = EDemoBoard.getInstance();
@@ -77,29 +76,30 @@ public class OnSpot extends MIDlet {
     private boolean appRun;
     private int speed;
     private int direction;
-    private int respond;
+    private boolean respondSpeed;
+    private boolean respondDirection;
     private int fb;
     private boolean somethingInFront;
+    
+    
+    private RadiogramConnection directionTransRadio;
+    private RadiogramConnection speedTransRadio;
+     private RadiogramConnection speedRecRadio;
+    private RadiogramConnection directionRecRadio;
 
     protected void startApp() throws MIDletStateChangeException {
-        led(0, LEDColor.YELLOW);
+        led(0, LEDColor.WHITE);
         led(0, true);
-        while (sw1.isOpen()) {
-            stop();
-            pause(250);
-        }
+
         speed = Speeds.SLOW;
-        fb = Directions.STOP;
         direction = Directions.CENTER;
-        respond = 0;
+        respondSpeed = respondDirection =false;
         appRun = true;
-        somethingInFront = false;
         initialize();
         led(0, LEDColor.WHITE);
         led(0, true);
         openRadios();
         startRadioThreads();
-        startCarControlThreads();
 
 //        new Thread() {
 //            public void run() {
@@ -107,111 +107,20 @@ public class OnSpot extends MIDlet {
 //            }
 //        }.start();
         
-        new Thread() {
-            public void run() {
-                checkFront();
-            }
-        }.start();
+       
 
-        while (sw1.isOpen()) {
+        while (appRun) {
             pause(2500);
         }
     }
 
-    public void startCarControlThreads() {
-        new Thread() {
-            public void run() {
-                fbController();
-            }
-        }.start();
-        new Thread() {
-            public void run() {
-                lrController();
-            }
-        }.start();
-    }
-
-    public void fbController() {
-        while (appRun) {
-            switch (fb) {
-                case Directions.FORWARD:
-                    led(1, LEDColor.GREEN);
-                    led(2, LEDColor.GREEN);
-                    if (somethingInFront) stop();
-                    else goForward();
-                    break;
-                case Directions.BACKWARD:
-                    led(1, LEDColor.RED);
-                    led(2, LEDColor.RED);
-                    goBackward();
-                    break;
-                case Directions.STOP:
-                    led(1, LEDColor.BLUE);
-                    led(2, LEDColor.BLUE);
-                    stop();
-                    break;
-                default:
-            }
-            led(1, true);
-            led(2, true);
-            pause(250);
-        }
-    }
     
-    public void checkFront() {
-        while(appRun) {
-            if (getFrontValue() < 40) {
-                led(7, LEDColor.RED);
-                somethingInFront = true;
-            } else {
-                led(7, LEDColor.GREEN);
-                somethingInFront = false;
-            }
-            led(7, true);
-            pause(500);
-        }
-    }
+   
     
-    public int getFrontValue() {
-        double value = 0;
-        for (int ii = 0; ii < 5; ii++) {
-            try {
-                value += (frontSensor.getVoltage() / .009766 * 2.4);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                return -1;
-            }
-        }
-
-        return (int) (value / 5);
-    }
     
+   
 
-    public void lrController() {
-        while (appRun) {
-            switch (direction) {
-                case Directions.LEFT:
-                    led(3, LEDColor.RED);
-                    led(4, LEDColor.RED);
-                    turnLeft();
-                    break;
-                case Directions.RIGHT:
-                    led(3, LEDColor.GREEN);
-                    led(4, LEDColor.GREEN);
-                    turnRight();
-                    break;
-                case Directions.CENTER:
-                    led(3, LEDColor.BLUE);
-                    led(4, LEDColor.BLUE);
-                    goStraight();
-                    break;
-                default:
-            }
-            led(3, true);
-            led(4, true);
-            pause(250);
-        }
-    }
+    
 
     public void startRadioThreads() {
         new Thread() {
@@ -224,29 +133,56 @@ public class OnSpot extends MIDlet {
                 getDirectionValue();
             }
         }.start();
+        new Thread() {
+            public void run() {
+                sendDirectionValue();
+            }
+        }.start();
+        new Thread() {
+            public void run() {
+                sendSpeedValue();
+            }
+        }.start();
     }
 
     public void getSpeedValue() {
         try {
-            Radiogram xdg = (Radiogram) speedRadio.newDatagram(speedRadio.getMaximumLength());
+            Radiogram xdg = (Radiogram) speedRecRadio.newDatagram(speedRecRadio.getMaximumLength());
 
             while (appRun) {
                 xdg.reset();
                 try {
-                    speedRadio.receive(xdg);
+                    speedRecRadio.receive(xdg);
                     speed = xdg.readInt();
-                    respond = speed;
-                    if (speed == Speeds.FAST) {
-                        stepValue = FASTER;
-                        led(6, LEDColor.GREEN);
-                    } else {
-                        stepValue = SLOWER;
-                        led(6, LEDColor.RED);
-                    }
+                    respondSpeed = true;                    
                     led(6, true);
+                    led(6, LEDColor.YELLOW);
                 } catch (Exception e) {
                 };
                 pause(250);
+                led(6, false);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    public void sendSpeedValue() {
+        try {
+            Radiogram xdg = (Radiogram) speedTransRadio.newDatagram(speedTransRadio.getMaximumLength());
+
+            while (appRun) {
+                
+                if(respondSpeed) {
+                    respondSpeed = false;
+                    led(1, true);
+                    led(1, LEDColor.BLUE);
+                    xdg.reset();
+                    xdg.writeInt(speed);
+                    speedTransRadio.send(xdg);
+                }
+                pause(250);
+                led(1, false);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -255,76 +191,77 @@ public class OnSpot extends MIDlet {
 
     public void getDirectionValue() {
         try {
-            Radiogram xdg = (Radiogram) directionRadio.newDatagram(directionRadio.getMaximumLength());
+            Radiogram xdg = (Radiogram) directionRecRadio.newDatagram(directionRecRadio.getMaximumLength());
 
             while (appRun) {
                 xdg.reset();
                 try {
-                    directionRadio.receive(xdg);
-                    int dir = xdg.readInt();
-                    switch (dir) {
-                        case Directions.LEFT:
-                            direction = Directions.LEFT;
-                            break;
-                        case Directions.RIGHT:
-                            direction = Directions.RIGHT;
-                            break;
-                        case Directions.CENTER:
-                            direction = Directions.CENTER;
-                            break;
-                        case Directions.FORWARD:
-                            fb = Directions.FORWARD;
-                            break;
-                        case Directions.BACKWARD:
-                            fb = Directions.BACKWARD;
-                            break;
-                        case Directions.STOP:
-                            fb = Directions.STOP;
-                            break;
-                        default:
-                    }
-                    respond = direction;
+                    directionRecRadio.receive(xdg);
+                    direction = xdg.readInt();
+                    
+                    led(3, LEDColor.RED);
+                    led(3, true);
+                    respondDirection = true;
                 } catch (Exception e) {
                 };
                 pause(250);
+                led(3, false);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    public void sendDirectionValue() {
+        try {
+            Radiogram xdg = (Radiogram) directionTransRadio.newDatagram(directionTransRadio.getMaximumLength());
+
+            while (appRun) {
+                if (respondDirection) {
+                    respondDirection = false;
+                    led(2, true);
+                    led(2, LEDColor.GREEN);
+                    xdg.reset();
+                    xdg.writeInt(direction);
+                    directionTransRadio.send(xdg);
+                }                                                                                              
+                pause(250);
+                led(2, false);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
-    public void sendResponse() {
-        try {
-            Radiogram xdg = (Radiogram) responseRadio.newDatagram(responseRadio.getMaximumLength());
-            while (appRun) {
-                xdg.reset();
-                xdg.writeInt(respond);
-                responseRadio.send(xdg);
-                pause(500);
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
+    
 
     public void openRadios() {
-        if (directionRadio == null) {
+        if (directionRecRadio == null) {
             try {
-                directionRadio = (RadiogramConnection) Connector.open("radiogram://:" + DIRECTION_PORT);
+                directionRecRadio = (RadiogramConnection) Connector.open("radiogram://:" + DIRECTION_PORT);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
-        if (speedRadio == null) {
+        if (speedRecRadio == null) {
             try {
-                speedRadio = (RadiogramConnection) Connector.open("radiogram://:" + SPEED_PORT);
+                speedRecRadio = (RadiogramConnection) Connector.open("radiogram://:" + SPEED_PORT);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
-        if (responseRadio == null) {
+        if (speedTransRadio == null) {
             try {
-                responseRadio = (RadiogramConnection) Connector.open("radiogram://broadcast:" + RESPONSE_PORT);
+                speedTransRadio = (RadiogramConnection) Connector.open("radiogram://broadcast:" + SPEED_PORT);
+                speedTransRadio.setMaxBroadcastHops(1);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        if (directionTransRadio == null) {
+            try {
+                directionTransRadio = (RadiogramConnection) Connector.open("radiogram://broadcast:" + DIRECTION_PORT);
+                directionTransRadio.setMaxBroadcastHops(1);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -379,34 +316,5 @@ public class OnSpot extends MIDlet {
         System.out.println(message);
     }
 
-    private void stop() {
-        frontBackServo.setValue(SERVO_CENTER_VALUE);
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    private void goForward() {
-        //System.out.println("Forward");
-        frontBackServo.setValue(SERVO_CENTER_VALUE - stepValue);
-    }
-
-    private void goBackward() {
-        //System.out.println("Backward");
-        frontBackServo.setValue(SERVO_CENTER_VALUE + stepValue);
-    }
-
-    private void turnLeft() {
-        leftRightServo.setValue(SERVO_CENTER_VALUE + LR_SERVO_HIGH);
-    }
-
-    private void turnRight() {
-        leftRightServo.setValue(SERVO_CENTER_VALUE - LR_SERVO_HIGH);
-    }
-
-    private void goStraight() {
-        leftRightServo.setValue(SERVO_CENTER_VALUE);
-    }
+   
 }

@@ -77,7 +77,7 @@ public class CourseCar extends MIDlet {
                 } else if (getFrontValue() < 17) {
                     backUp();
                 } else {
-                    System.out.println(baselineLeft + " " + getLeftValue());
+                    System.out.println(baselineRight + " " + getRightValue());
                     if (getLeftValue() < baselineLeft - 10) {
                         turnRight();
                     } else if (getRightValue() < baselineRight - 10) {
